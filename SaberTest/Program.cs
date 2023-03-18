@@ -122,8 +122,6 @@ class ListRand
 
     public void AnalyzeLine(string line, ListNode[] nodes, int index)
     {
-        //int randNumber = 0;
-        //string data = string.Empty;
         FindOrderAndData(line, out int randNumber, out string data);
         var current = nodes[index];
         current.Rand = randNumber != -1 ? nodes[randNumber] : null;
