@@ -50,6 +50,7 @@ class ListRand
         output.Length = output.Length - 1;
         return output.ToString();
     }
+    
     public void Serialize(FileStream s)
     {
         StreamWriter sw = new StreamWriter(s);
@@ -60,7 +61,6 @@ class ListRand
             byte[] encodedInformation = Encoding.ASCII.GetBytes(nodeInformation.ToString()+"\n");
             s.Write(encodedInformation);
         }
-        
     }
 
     public void Deserialize(FileStream s)
@@ -128,7 +128,6 @@ class ListRand
         var current = nodes[index];
         current.Rand = randNumber != -1 ? nodes[randNumber] : null;
         current.Data = data;
-        
     }
 
     public static void FindOrderAndData(string line, out int randNumber, out string data)
