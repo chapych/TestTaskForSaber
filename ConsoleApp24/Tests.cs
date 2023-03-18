@@ -1,39 +1,16 @@
 ﻿using NUnit.Framework;
 using NUnit;
 
-namespace TestProject
+namespace Task_Test_Example
 {
     public class Tests
     {
+        static string fileName = "testFile";
 
         [TestFixture]
         public class CorrectReading
         {
-            //[Test]
-            //public void Serialization_1()
-            //{
-            //    string input = @"[-1,0][1,1][4,2][0,3][-1,4]";
-            //    Assertion(input);
-            //}
-
             [Test]
-            //public void Serialization_2()///сделать чрез testcase+case sob[]aka
-            //{
-            //    string input = @"[-1,a][-1,b][-1,c][-1,d]";
-            //    Assertion(input);
-            //}
-
-            //public void Assertion(string input)
-            //{
-            //    var list = input.ConvertToListRand();
-            //    FileStream stream = new FileStream("file.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            //    stream.Position = 0;
-            //    var numberedDictionary = list.GetOrderedDictionary();
-            //    var output = list.ConvertToString(numberedDictionary);
-
-            //    Assert.That(output, Is.EqualTo(input));
-            //}
-
             public void SerializeAndDeserialize()
             {
                 ListNode head = new ListNode(null, "head");
@@ -52,18 +29,43 @@ namespace TestProject
                 tail.ConnectToPrev(fourthNode);
 
                 var list = new ListRand(head, tail, 5);
-                using (var stream = new FileStream("4", FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+                File.WriteAllText(fileName, string.Empty); //clear test file
+                using (var stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
                 {
                     list.Serialize(stream);
                 }
-                using (var stream = new FileStream("4", FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite))
+                using (var stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite))
                 {
                     list.Deserialize(stream);
                 }
-                Assert.That(("(-1,'head')\n(1,'second')\n(4,'third')\n(0,'4th')\n(-1,'tail')"), Is.EqualTo(list.ToString()));
+                Assert.That(list.ToString(), Is.EqualTo("(-1,'head')\n(1,'second')\n(4,'third')\n(0,'4th')\n(-1,'tail')"));
                 
             }
         }
     }
+
+}
+
+namespace Correct_Brackets_Parentheses_etc_Parsing
+{
+    public class Tests
+    {
+        [TestFixture]
+        public class CorrectReading
+        {
+            [TestCase("(1,'data')", 1, "data")]
+            [TestCase("(1,'da'''''ta')", 1, "da'''''ta")]
+            [TestCase("(1,'da)()(ta')", 1, "da)()(ta")]
+            [TestCase("(1,'da')')ta')", 1, "da')')ta")]
+            [TestCase(@"(1,'da\nta')", 1, "da\nta")]
+            [TestCase("(1,'data1')", 1, "data1")]
+            public void Brackets_Should(string input, int numberShould, string dataShould)
+            {
+                ListRand.FindOrderAndData(input, out int number, out string data);
+                Assert.That(number, Is.EqualTo(numberShould));
+                Assert.That(data, Is.EqualTo(dataShould));
+            }
+    }
+}
 
 }

@@ -21,11 +21,6 @@ class ListNode
         this.Prev = other;
         other.Next = this;
     }
-
-    public override string ToString()
-    {
-        return $"Prev: {this.Prev}, Next: {this.Next}, Rand: {this.Rand}, Data: {this.Data}";
-    }
 }
 
 class ListRand
@@ -44,22 +39,40 @@ class ListRand
     public override string ToString()
     {
         var numberByNode = GetOrderedDictionary();
-        string listNodeInformation = ConvertToString(numberByNode);
-        return listNodeInformation;
+        var output = new StringBuilder();
+        foreach (var node in Nodes())
+        {
+            var rand = node.Rand;
+            int number = rand == null ? -1 : numberByNode[rand];
+            string nodeInformation = $"{number},'{node.Data}'";
+            output.Append("(" + nodeInformation + ")\n");
+        }
+        output.Length = output.Length - 1;
+        return output.ToString();
     }
     public void Serialize(FileStream s)
     {
+        StreamWriter sw = new StreamWriter(s);
         var numberByNode = GetOrderedDictionary();
-        string listNodeInformation = ConvertToString(numberByNode);
-        byte[] encodedInformation = Encoding.ASCII.GetBytes(listNodeInformation.ToString());
-        s.Write(encodedInformation);
+        foreach(var node in Nodes())
+        {
+            string nodeInformation = ConvertToString(numberByNode, node);
+            byte[] encodedInformation = Encoding.ASCII.GetBytes(nodeInformation.ToString()+"\n");
+            s.Write(encodedInformation);
+        }
+        
     }
 
     public void Deserialize(FileStream s)
     {
         var nodes = CreateNodes();
-        string decodedLine = DecodeBytes(s);
-        AnalyzeLine(decodedLine, nodes);
+        StreamReader sr = new StreamReader(s);
+        int index = 0;
+        while (!sr.EndOfStream)
+        {
+            string current = sr.ReadLine();
+            AnalyzeLine(current, nodes, index++);
+        }
     }
 
     public Dictionary<ListNode, int> GetOrderedDictionary()
@@ -73,18 +86,13 @@ class ListRand
         return dictionary;
     }
 
-    public string ConvertToString(Dictionary<ListNode,int> dictionary)
+    public string ConvertToString(Dictionary<ListNode,int> dictionary, ListNode node)
     {
         var output = new StringBuilder();
-        foreach (var node in Nodes())
-        {
-            var rand = node.Rand;
-            int number = rand == null ? -1 : dictionary[rand];
-            string nodeInformation = $"{number},'{node.Data}'";
-            output.Append("(" + nodeInformation + ")\n");
-        }
-        output.Length = output.Length - 1;
-        return output.ToString();
+        var rand = node.Rand;
+        int number = rand == null ? -1 : dictionary[rand];
+        string nodeInformation = $"({number},'{node.Data}')";
+        return nodeInformation;
     }
 
     public ListNode[] CreateNodes()
@@ -112,21 +120,25 @@ class ListRand
         return decoded;
     }
 
-    public void AnalyzeLine(string line, ListNode[] nodes)
+    public void AnalyzeLine(string line, ListNode[] nodes, int index)
+    {
+        //int randNumber = 0;
+        //string data = string.Empty;
+        FindOrderAndData(line, out int randNumber, out string data);
+        var current = nodes[index];
+        current.Rand = randNumber != -1 ? nodes[randNumber] : null;
+        current.Data = data;
+        
+    }
+
+    public static void FindOrderAndData(string line, out int randNumber, out string data)
     {
         string pattern = @"(?<=((?<Rand>-*\d),'))(?<Data>.*)(?=('\)))";
-        var mathes = Regex.Matches(line, pattern, RegexOptions.ExplicitCapture);
-        int index = 0;
-        foreach (Match matchItem in mathes)
-        {
-            var randValue = matchItem.Groups["Rand"].Value;
-            int randNumber = Int32.Parse(randValue);
-            string data = matchItem.Groups["Data"].Value.Replace(@"\n", "\n");
+        var match = Regex.Match(line, pattern, RegexOptions.ExplicitCapture);
 
-            var current = nodes[index++];
-            current.Rand = randNumber != -1 ? nodes[randNumber] : null;
-            current.Data = data;
-        }
+        var randValue = match.Groups["Rand"].Value;
+        randNumber = Int32.Parse(randValue);
+        data = match.Groups["Data"].Value.Replace("\\n", "\n"); //in case if data contains new line
     }
 
     public IEnumerable<ListNode> Nodes()
@@ -139,5 +151,4 @@ class ListRand
         }
     }
 }
-
 
