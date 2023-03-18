@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using NUnit;
 
 namespace Task_Test_Example
@@ -39,11 +39,9 @@ namespace Task_Test_Example
                     list.Deserialize(stream);
                 }
                 Assert.That(list.ToString(), Is.EqualTo("(-1,'head')\n(1,'second')\n(4,'third')\n(0,'4th')\n(-1,'tail')"));
-                
             }
         }
     }
-
 }
 
 namespace Correct_Brackets_Parentheses_etc_Parsing
@@ -65,7 +63,48 @@ namespace Correct_Brackets_Parentheses_etc_Parsing
                 Assert.That(number, Is.EqualTo(numberShould));
                 Assert.That(data, Is.EqualTo(dataShould));
             }
+        }
     }
 }
 
+namespace Correct_Time
+{
+    public class Tests
+    {
+        static string fileName = "testFile";
+        [TestFixture]
+        public class CorrectReading
+        {
+            [TestCase(100)]
+            [TestCase(1000)]
+            [TestCase(10000)]
+            [TestCase(100000)]
+            [TestCase(1000000)]
+            [Test, MaxTime(3000)]
+            public void Time_Should(int n)
+            {
+                ListNode head = new ListNode(null, "head");
+                ListNode tail = new ListNode(null, "tail");
+                ListRand list = new ListRand(head, tail, n);
+                var prev = head;
+                for (int i = 1; i < n - 1; i++)
+                {
+                    ListNode current = new ListNode(prev, "data");
+                    current.ConnectToPrev(prev);
+                    prev = current;
+                }
+                tail.ConnectToPrev(prev);
+                File.WriteAllText(fileName, string.Empty); //clear test file
+                using (var stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+                {
+                    list.Serialize(stream);
+                }
+                using (var stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    list.Deserialize(stream);
+                }
+            }
+        }
+
+    }
 }
